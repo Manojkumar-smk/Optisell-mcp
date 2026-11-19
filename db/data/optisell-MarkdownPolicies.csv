@@ -1,0 +1,4 @@
+category;floor_margin_pct;min_markdown_pct;max_markdown_pct;step_pct;elasticity
+dairy;15;10;50;10;-2.2
+bakery;15;10;50;10;-2.8
+produce;15;10;50;10;-2

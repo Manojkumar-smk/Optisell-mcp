@@ -1,0 +1,85 @@
+{
+  "name": "optisell-tools",
+  "version": "1.0.0",
+  "description": "OptiSell tools service (CAP) with SBPA price approval",
+  "private": true,
+  "engines": {
+    "node": "^22"
+  },
+  "scripts": {
+    "start": "cds-serve",
+    "watch": "cds watch",
+    "test": "jest --runInBand",
+    "seed": "node scripts/gen-seed.js",
+    "openapi": "node scripts/openapi.js",
+    "build": "mbt build -t mta_archives"
+  },
+  "dependencies": {
+    "@cap-js/sqlite": "^3",
+    "@sap/cds": "^10",
+    "@sap/xssec": "^4",
+    "express": "^4"
+  },
+  "devDependencies": {
+    "@cap-js/cds-test": "*",
+    "@cap-js/openapi": "^1",
+    "jest": "^30"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testTimeout": 30000
+  },
+  "cds": {
+    "requires": {
+      "db": {
+        "kind": "sqlite",
+        "credentials": {
+          "url": ":memory:"
+        }
+      },
+      "[development]": {
+        "auth": {
+          "kind": "mocked",
+          "users": {
+            "agent": {
+              "roles": [
+                "Tools"
+              ]
+            },
+            "sbpa": {
+              "roles": [
+                "SbpaCallback"
+              ]
+            },
+            "nobody": {
+              "roles": []
+            }
+          }
+        }
+      },
+      "[test]": {
+        "auth": {
+          "kind": "mocked",
+          "users": {
+            "agent": {
+              "roles": [
+                "Tools"
+              ]
+            },
+            "sbpa": {
+              "roles": [
+                "SbpaCallback"
+              ]
+            },
+            "nobody": {
+              "roles": []
+            }
+          }
+        }
+      },
+      "[production]": {
+        "auth": "xsuaa"
+      }
+    }
+  }
+}

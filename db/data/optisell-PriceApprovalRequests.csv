@@ -1,0 +1,3 @@
+proposal_id;store_id;sku;batch;old_price;new_price;discount_pct;margin_pct;at_risk_qty;margin_breach;reason;approver_role;status;sbpa_instance_id;sbpa_definition_id;requested_by;decided_by;decision_comment
+P-0001;S101;SPN-BN;B2309;30;24;20;25;13;false;Expires in 1 day, 13 units at risk;store_manager;applied;seed-0001;seed;optisell-agent;store.manager@optisell.example;Approved
+P-0002;S101;BRD-WW;B2308;50;40;20;12.5;0;true;Promotional markdown;category_manager;rejected;seed-0002;seed;optisell-agent;category.manager@optisell.example;Margin below floor

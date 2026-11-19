@@ -1,0 +1,22 @@
+{
+  "xsappname": "optisell-tools",
+  "tenant-mode": "dedicated",
+  "description": "OptiSell tools service — agent tools and SBPA approval callback",
+  "scopes": [
+    {
+      "name": "$XSAPPNAME.Tools",
+      "description": "Call the OptiSell agent tools (/tools, /admin)",
+      "grant-as-authority-to-apps": ["$XSAPPNAME(application,optisell-agent)"]
+    },
+    {
+      "name": "$XSAPPNAME.SbpaCallback",
+      "description": "SBPA approval callback (/sbpa)",
+      "grant-as-authority-to-apps": ["$XSAPPNAME(application,optisell-sbpa)"]
+    }
+  ],
+  "role-templates": [
+    { "name": "Tools", "description": "OptiSell agent tools", "scope-references": ["$XSAPPNAME.Tools"] },
+    { "name": "SbpaCallback", "description": "SBPA approval callback", "scope-references": ["$XSAPPNAME.SbpaCallback"] }
+  ],
+  "oauth2-configuration": { "credential-types": ["binding-secret"] }
+}

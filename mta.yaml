@@ -1,0 +1,68 @@
+_schema-version: "3.2"
+ID: optisell-tools
+version: 1.0.0
+description: OptiSell tools service (CAP) with SBPA price approval
+
+# Three XSUAA instances so the two callers get DIFFERENT client ids and scopes
+# (all service keys of one XSUAA instance share the same client and authorities):
+#   optisell-uaa         – the app itself (scopes Tools, SbpaCallback)
+#   optisell-agent-uaa   – client for Joule Studio agent / MCP server → only Tools
+#   optisell-sbpa-uaa    – client for the SBPA destination           → only SbpaCallback
+# Create a service key on optisell-agent-uaa and optisell-sbpa-uaa and use those credentials.
+
+modules:
+  - name: optisell-tools-srv
+    type: nodejs
+    path: .
+    build-parameters:
+      builder: custom        # no local npm install/prune: the CF nodejs buildpack installs deps
+      commands: []
+      ignore: [node_modules/, mta_archives/, test/, .git/, "*.mtar", coverage/, install.cmd]
+    parameters:
+      buildpack: nodejs_buildpack
+      memory: 256M
+      disk-quota: 512M
+      instances: 1           # in-memory SQLite — state is per instance and reset on restart
+      command: npm start
+    properties:
+      NODE_ENV: production
+      SBPA_MODE: mock        # switch to "live" and set the SBPA_* variables below
+      APPROVAL_TIMEOUT_HOURS: 24
+      # SBPA_API_URL / SBPA_TOKEN_URL / SBPA_CLIENT_ID / SBPA_CLIENT_SECRET / SBPA_DEFINITION_ID
+      # are set with `cf set-env` (secrets are not kept in this file)
+    provides:
+      - name: srv-api
+        properties:
+          srv-url: ${default-url}
+    requires:
+      - name: optisell-uaa
+
+resources:
+  - name: optisell-uaa
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: xsuaa
+      service-plan: application
+      path: ./xs-security.json
+
+  - name: optisell-agent-uaa
+    type: org.cloudfoundry.managed-service
+    processed-after: [optisell-uaa]
+    parameters:
+      service: xsuaa
+      service-plan: application
+      config:
+        xsappname: optisell-agent
+        tenant-mode: dedicated
+        authorities: ["$XSAPPNAME(application,optisell-tools).Tools"]
+
+  - name: optisell-sbpa-uaa
+    type: org.cloudfoundry.managed-service
+    processed-after: [optisell-uaa]
+    parameters:
+      service: xsuaa
+      service-plan: application
+      config:
+        xsappname: optisell-sbpa
+        tenant-mode: dedicated
+        authorities: ["$XSAPPNAME(application,optisell-tools).SbpaCallback"]

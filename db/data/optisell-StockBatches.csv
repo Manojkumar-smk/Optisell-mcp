@@ -1,0 +1,12 @@
+batch;store_id;sku;name;category;qty;expiry_offset;unit_cost
+B2301;S101;MLK-1L;Toned milk 1L;dairy;120;3;40
+B2302;S101;YGT-GRK;Greek yogurt 100g;dairy;60;2;50
+B2303;S101;CRS-2PC;Croissant 2 pc;bakery;30;1;45
+B2304;S101;CRD-400;Curd 400g;dairy;30;0;34
+B2305;S101;CRD-400;Curd 400g;dairy;80;4;34
+B2306;S101;BAN-12;Bananas 12 pc;produce;50;3;40
+B2307;S101;STR-200;Strawberries 200g;produce;30;2;100
+B2308;S101;BRD-WW;Whole wheat bread 400g;bakery;40;2;35
+B2309;S101;SPN-BN;Spinach bunch;produce;40;1;18
+B2310;S101;PNR-200;Paneer 200g;dairy;45;3;70
+B2311;S101;TOM-1KG;Tomato 1 kg;produce;80;5;30

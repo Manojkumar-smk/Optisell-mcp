@@ -1,0 +1,12 @@
+store_id;sku;batch;regular_price;current_price;currency;approval_status;active_proposal_id;sbpa_instance_id;proposed_price;last_decided_by
+S101;MLK-1L;B2301;68;68;INR;NONE;;;;
+S101;YGT-GRK;B2302;60;60;INR;NONE;;;;
+S101;CRS-2PC;B2303;90;90;INR;NONE;;;;
+S101;CRD-400;B2304;45;45;INR;NONE;;;;
+S101;CRD-400;B2305;45;45;INR;NONE;;;;
+S101;BAN-12;B2306;60;60;INR;NONE;;;;
+S101;STR-200;B2307;150;150;INR;NONE;;;;
+S101;BRD-WW;B2308;50;50;INR;NONE;;;;
+S101;SPN-BN;B2309;30;24;INR;APPLIED;;;;store.manager@optisell.example
+S101;PNR-200;B2310;95;95;INR;NONE;;;;
+S101;TOM-1KG;B2311;40;40;INR;NONE;;;;

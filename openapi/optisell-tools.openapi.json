@@ -1,0 +1,1188 @@
+{
+  "openapi": "3.0.2",
+  "info": {
+    "title": "OptiSell Tools",
+    "description": "OptiSell agent tools. Every tool is `POST /tools/<tool_name>` with a JSON body of named parameters.\nRead-only tools: all get_*. Write tools: create_proposal, record_outcome.\nPrices only change after an approval in SAP Build Process Automation.",
+    "version": "1.0.0"
+  },
+  "x-sap-api-type": "ODATAV4",
+  "x-odata-version": "4.01",
+  "x-sap-shortText": "OptiSell agent tools. Every tool is `POST /tools/<tool_name>` with a JSON body of named parameters.\nRead-only tools: all get_*. Write tools: create_proposal, record_outcome.\nPrices only change after an approval in SAP Build Process Automation.",
+  "servers": [
+    {
+      "url": "https://<your-app>.cfapps.us10-001.hana.ondemand.com/tools"
+    }
+  ],
+  "tags": [],
+  "paths": {
+    "/create_proposal": {
+      "post": {
+        "summary": "[write] create_proposal",
+        "tags": [
+          "Service Operations"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ToolsService.optisell_api_Proposal"
+                    }
+                  ],
+                  "nullable": true
+                }
+              }
+            }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/error"
+          }
+        },
+        "requestBody": {
+          "description": "Action parameters",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "store_id": {
+                    "type": "string"
+                  },
+                  "sku": {
+                    "type": "string"
+                  },
+                  "batch": {
+                    "type": "string"
+                  },
+                  "old_price": {
+                    "type": "number",
+                    "format": "double"
+                  },
+                  "new_price": {
+                    "type": "number",
+                    "format": "double"
+                  },
+                  "discount_pct": {
+                    "type": "number",
+                    "format": "double"
+                  },
+                  "margin_pct": {
+                    "type": "number",
+                    "format": "double"
+                  },
+                  "margin_breach": {
+                    "type": "boolean"
+                  },
+                  "at_risk_qty": {
+                    "type": "number",
+                    "format": "double"
+                  },
+                  "reason": {
+                    "type": "string"
+                  },
+                  "requested_by": {
+                    "type": "string",
+                    "nullable": true
+                  }
+                },
+                "required": [
+                  "store_id",
+                  "sku",
+                  "batch",
+                  "old_price",
+                  "new_price",
+                  "discount_pct",
+                  "margin_pct",
+                  "margin_breach",
+                  "at_risk_qty",
+                  "reason"
+                ]
+              }
+            }
+          }
+        },
+        "operationId": "create_proposal",
+        "x-read-only": false,
+        "description": "Write. Creates a price-change request and starts the SBPA approval process.\nThe price is NOT changed here — only after SBPA approves. 409 if the batch already has an approval in progress."
+      }
+    },
+    "/get_approval_status": {
+      "post": {
+        "summary": "[read-only] get_approval_status",
+        "tags": [
+          "Service Operations"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ToolsService.optisell_api_Proposal"
+                    }
+                  ],
+                  "nullable": true
+                }
+              }
+            }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/error"
+          }
+        },
+        "requestBody": {
+          "description": "Action parameters",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "proposal_id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "proposal_id"
+                ]
+              }
+            }
+          }
+        },
+        "operationId": "get_approval_status",
+        "x-read-only": true,
+        "description": "Read-only. Current status of one proposal; 404 if unknown."
+      }
+    },
+    "/get_competitor_prices": {
+      "post": {
+        "summary": "[read-only] get_competitor_prices",
+        "tags": [
+          "Service Operations"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ToolsService.return_ToolsService_get_competitor_prices"
+                    }
+                  ],
+                  "nullable": true
+                }
+              }
+            }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/error"
+          }
+        },
+        "requestBody": {
+          "description": "Action parameters",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "store_id": {
+                    "type": "string"
+                  },
+                  "sku": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "store_id",
+                  "sku"
+                ]
+              }
+            }
+          }
+        },
+        "operationId": "get_competitor_prices",
+        "x-read-only": true,
+        "description": "Read-only. Competitor prices for a sku (empty list if none)."
+      }
+    },
+    "/get_demand_signals": {
+      "post": {
+        "summary": "[read-only] get_demand_signals",
+        "tags": [
+          "Service Operations"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ToolsService.return_ToolsService_get_demand_signals"
+                    }
+                  ],
+                  "nullable": true
+                }
+              }
+            }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/error"
+          }
+        },
+        "requestBody": {
+          "description": "Action parameters",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "store_id": {
+                    "type": "string"
+                  },
+                  "horizon_days": {
+                    "type": "integer",
+                    "format": "int32",
+                    "nullable": true
+                  }
+                },
+                "required": [
+                  "store_id"
+                ]
+              }
+            }
+          }
+        },
+        "operationId": "get_demand_signals",
+        "x-read-only": true,
+        "description": "Read-only. Demand forecast per sku and events within horizon_days (default 7)."
+      }
+    },
+    "/get_markdown_kpis": {
+      "post": {
+        "summary": "[read-only] get_markdown_kpis",
+        "tags": [
+          "Service Operations"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ToolsService.return_ToolsService_get_markdown_kpis"
+                    }
+                  ],
+                  "nullable": true
+                }
+              }
+            }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/error"
+          }
+        },
+        "requestBody": {
+          "description": "Action parameters",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "store_id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "store_id"
+                ]
+              }
+            }
+          }
+        },
+        "operationId": "get_markdown_kpis",
+        "x-read-only": true,
+        "description": "Read-only. Markdown KPIs for a store."
+      }
+    },
+    "/get_markdown_policy": {
+      "post": {
+        "summary": "[read-only] get_markdown_policy",
+        "tags": [
+          "Service Operations"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ToolsService.return_ToolsService_get_markdown_policy"
+                    }
+                  ],
+                  "nullable": true
+                }
+              }
+            }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/error"
+          }
+        },
+        "requestBody": {
+          "description": "Action parameters",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "category": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "category"
+                ]
+              }
+            }
+          }
+        },
+        "operationId": "get_markdown_policy",
+        "x-read-only": true,
+        "description": "Read-only. Markdown policy for a category; 404 if unknown."
+      }
+    },
+    "/get_proposals": {
+      "post": {
+        "summary": "[read-only] get_proposals",
+        "tags": [
+          "Service Operations"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ToolsService.return_ToolsService_get_proposals"
+                    }
+                  ],
+                  "nullable": true
+                }
+              }
+            }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/error"
+          }
+        },
+        "requestBody": {
+          "description": "Action parameters",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "store_id": {
+                    "type": "string"
+                  },
+                  "status": {
+                    "type": "string",
+                    "nullable": true
+                  }
+                },
+                "required": [
+                  "store_id"
+                ]
+              }
+            }
+          }
+        },
+        "operationId": "get_proposals",
+        "x-read-only": true,
+        "description": "Read-only. Proposals of a store, optionally filtered by status (pending|applied|rejected|failed|expired)."
+      }
+    },
+    "/get_sales_history": {
+      "post": {
+        "summary": "[read-only] get_sales_history",
+        "tags": [
+          "Service Operations"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ToolsService.return_ToolsService_get_sales_history"
+                    }
+                  ],
+                  "nullable": true
+                }
+              }
+            }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/error"
+          }
+        },
+        "requestBody": {
+          "description": "Action parameters",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "store_id": {
+                    "type": "string"
+                  },
+                  "days": {
+                    "type": "integer",
+                    "format": "int32",
+                    "nullable": true
+                  },
+                  "sku": {
+                    "type": "string",
+                    "nullable": true
+                  }
+                },
+                "required": [
+                  "store_id"
+                ]
+              }
+            }
+          }
+        },
+        "operationId": "get_sales_history",
+        "x-read-only": true,
+        "description": "Read-only. Daily unit sales for the last `days` days (default 14), optionally for one sku."
+      }
+    },
+    "/get_store_stock": {
+      "post": {
+        "summary": "[read-only] get_store_stock",
+        "tags": [
+          "Service Operations"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ToolsService.return_ToolsService_get_store_stock"
+                    }
+                  ],
+                  "nullable": true
+                }
+              }
+            }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/error"
+          }
+        },
+        "requestBody": {
+          "description": "Action parameters",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "store_id": {
+                    "type": "string"
+                  },
+                  "horizon_days": {
+                    "type": "integer",
+                    "format": "int32",
+                    "nullable": true
+                  }
+                },
+                "required": [
+                  "store_id"
+                ]
+              }
+            }
+          }
+        },
+        "operationId": "get_store_stock",
+        "x-read-only": true,
+        "description": "Read-only. Batches of a store expiring within horizon_days (default 7), with current price and approval state."
+      }
+    },
+    "/record_outcome": {
+      "post": {
+        "summary": "[write] record_outcome",
+        "tags": [
+          "Service Operations"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ToolsService.return_ToolsService_record_outcome"
+                    }
+                  ],
+                  "nullable": true
+                }
+              }
+            }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/error"
+          }
+        },
+        "requestBody": {
+          "description": "Action parameters",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "proposal_id": {
+                    "type": "string"
+                  },
+                  "units_sold": {
+                    "type": "number",
+                    "format": "double"
+                  },
+                  "units_wasted": {
+                    "type": "number",
+                    "format": "double"
+                  }
+                },
+                "required": [
+                  "proposal_id",
+                  "units_sold",
+                  "units_wasted"
+                ]
+              }
+            }
+          }
+        },
+        "operationId": "record_outcome",
+        "x-read-only": false,
+        "description": "Write. Records the sales outcome of an applied proposal; 409 unless status is applied."
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ToolsService.StockItem": {
+        "title": "StockItem",
+        "type": "object",
+        "properties": {
+          "sku": {
+            "type": "string",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "category": {
+            "type": "string",
+            "nullable": true
+          },
+          "batch": {
+            "type": "string",
+            "nullable": true
+          },
+          "qty": {
+            "nullable": true,
+            "type": "number",
+            "format": "double"
+          },
+          "expiry": {
+            "type": "string",
+            "format": "date",
+            "example": "2017-04-13",
+            "nullable": true,
+            "description": "YYYY-MM-DD"
+          },
+          "unit_cost": {
+            "nullable": true,
+            "type": "number",
+            "format": "double"
+          },
+          "price": {
+            "nullable": true,
+            "description": "current selling price (MaterialPrices.current_price)",
+            "type": "number",
+            "format": "double"
+          },
+          "approval_status": {
+            "type": "string",
+            "nullable": true,
+            "description": "NONE | TRIGGERING | PENDING | APPLIED | REJECTED | FAILED | EXPIRED"
+          },
+          "active_proposal_id": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "ToolsService.optisell_api_Proposal": {
+        "title": "optisell_api_Proposal",
+        "type": "object",
+        "properties": {
+          "proposal_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "store_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "sku": {
+            "type": "string",
+            "nullable": true
+          },
+          "batch": {
+            "type": "string",
+            "nullable": true
+          },
+          "old_price": {
+            "nullable": true,
+            "type": "number",
+            "format": "double"
+          },
+          "new_price": {
+            "nullable": true,
+            "type": "number",
+            "format": "double"
+          },
+          "discount_pct": {
+            "nullable": true,
+            "type": "number",
+            "format": "double"
+          },
+          "margin_pct": {
+            "nullable": true,
+            "type": "number",
+            "format": "double"
+          },
+          "margin_breach": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "at_risk_qty": {
+            "nullable": true,
+            "type": "number",
+            "format": "double"
+          },
+          "reason": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "nullable": true,
+            "description": "pending | applied | rejected | failed | expired"
+          },
+          "approver_role": {
+            "type": "string",
+            "nullable": true,
+            "description": "store_manager | category_manager"
+          },
+          "created": {
+            "type": "string",
+            "format": "date",
+            "example": "2017-04-13",
+            "nullable": true,
+            "description": "YYYY-MM-DD"
+          },
+          "sbpa_instance_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "sbpa_definition_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "requested_by": {
+            "type": "string",
+            "nullable": true
+          },
+          "requested_at": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2017-04-13T15:51:04Z",
+            "nullable": true,
+            "description": "YYYY-MM-DDTHH:MM:SSZ"
+          },
+          "decided_by": {
+            "type": "string",
+            "nullable": true
+          },
+          "decided_at": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2017-04-13T15:51:04Z",
+            "nullable": true,
+            "description": "YYYY-MM-DDTHH:MM:SSZ"
+          },
+          "applied_at": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2017-04-13T15:51:04Z",
+            "nullable": true,
+            "description": "YYYY-MM-DDTHH:MM:SSZ"
+          },
+          "decision_comment": {
+            "type": "string",
+            "nullable": true
+          },
+          "error_message": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "ToolsService.return_ToolsService_get_competitor_prices": {
+        "title": "return_ToolsService_get_competitor_prices",
+        "type": "object",
+        "properties": {
+          "sku": {
+            "type": "string",
+            "nullable": true
+          },
+          "competitor_prices": {
+            "type": "array",
+            "items": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/ToolsService.return_ToolsService_get_competitor_prices_competitor_prices"
+                }
+              ],
+              "nullable": true
+            }
+          }
+        }
+      },
+      "ToolsService.return_ToolsService_get_competitor_prices_competitor_prices": {
+        "title": "return_ToolsService_get_competitor_prices_competitor_prices",
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "price": {
+            "nullable": true,
+            "type": "number",
+            "format": "double"
+          },
+          "observed": {
+            "type": "string",
+            "format": "date",
+            "example": "2017-04-13",
+            "nullable": true
+          }
+        }
+      },
+      "ToolsService.return_ToolsService_get_demand_signals": {
+        "title": "return_ToolsService_get_demand_signals",
+        "type": "object",
+        "properties": {
+          "forecast": {
+            "type": "array",
+            "items": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/ToolsService.return_ToolsService_get_demand_signals_forecast"
+                }
+              ],
+              "nullable": true
+            }
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/ToolsService.return_ToolsService_get_demand_signals_events"
+                }
+              ],
+              "nullable": true
+            }
+          }
+        }
+      },
+      "ToolsService.return_ToolsService_get_demand_signals_events": {
+        "title": "return_ToolsService_get_demand_signals_events",
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "date": {
+            "type": "string",
+            "format": "date",
+            "example": "2017-04-13",
+            "nullable": true
+          },
+          "impact_pct": {
+            "nullable": true,
+            "type": "number",
+            "format": "double"
+          },
+          "categories": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "nullable": true
+            }
+          }
+        }
+      },
+      "ToolsService.return_ToolsService_get_demand_signals_forecast": {
+        "title": "return_ToolsService_get_demand_signals_forecast",
+        "type": "object",
+        "properties": {
+          "sku": {
+            "type": "string",
+            "nullable": true
+          },
+          "daily_units": {
+            "nullable": true,
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "ToolsService.return_ToolsService_get_markdown_kpis": {
+        "title": "return_ToolsService_get_markdown_kpis",
+        "type": "object",
+        "properties": {
+          "proposals_created": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "approved": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "rejected": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "applied": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "recovered_value": {
+            "nullable": true,
+            "type": "number",
+            "format": "double"
+          },
+          "waste_avoided_value": {
+            "nullable": true,
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "ToolsService.return_ToolsService_get_markdown_policy": {
+        "title": "return_ToolsService_get_markdown_policy",
+        "type": "object",
+        "properties": {
+          "category": {
+            "type": "string",
+            "nullable": true
+          },
+          "floor_margin_pct": {
+            "nullable": true,
+            "type": "number",
+            "format": "double"
+          },
+          "min_markdown_pct": {
+            "nullable": true,
+            "type": "number",
+            "format": "double"
+          },
+          "max_markdown_pct": {
+            "nullable": true,
+            "type": "number",
+            "format": "double"
+          },
+          "step_pct": {
+            "nullable": true,
+            "type": "number",
+            "format": "double"
+          },
+          "elasticity": {
+            "nullable": true,
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "ToolsService.return_ToolsService_get_proposals": {
+        "title": "return_ToolsService_get_proposals",
+        "type": "object",
+        "properties": {
+          "proposals": {
+            "type": "array",
+            "items": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/ToolsService.optisell_api_Proposal"
+                }
+              ],
+              "nullable": true
+            }
+          }
+        }
+      },
+      "ToolsService.return_ToolsService_get_sales_history": {
+        "title": "return_ToolsService_get_sales_history",
+        "type": "object",
+        "properties": {
+          "store_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "from_date": {
+            "type": "string",
+            "format": "date",
+            "example": "2017-04-13",
+            "nullable": true
+          },
+          "to_date": {
+            "type": "string",
+            "format": "date",
+            "example": "2017-04-13",
+            "nullable": true
+          },
+          "sales": {
+            "type": "array",
+            "items": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/ToolsService.return_ToolsService_get_sales_history_sales"
+                }
+              ],
+              "nullable": true
+            }
+          }
+        }
+      },
+      "ToolsService.return_ToolsService_get_sales_history_sales": {
+        "title": "return_ToolsService_get_sales_history_sales",
+        "type": "object",
+        "properties": {
+          "sku": {
+            "type": "string",
+            "nullable": true
+          },
+          "date": {
+            "type": "string",
+            "format": "date",
+            "example": "2017-04-13",
+            "nullable": true
+          },
+          "units": {
+            "nullable": true,
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "ToolsService.return_ToolsService_get_store_stock": {
+        "title": "return_ToolsService_get_store_stock",
+        "type": "object",
+        "properties": {
+          "store_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "currency": {
+            "type": "string",
+            "nullable": true
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/ToolsService.StockItem"
+                }
+              ],
+              "nullable": true
+            }
+          }
+        }
+      },
+      "ToolsService.return_ToolsService_record_outcome": {
+        "title": "return_ToolsService_record_outcome",
+        "type": "object",
+        "properties": {
+          "proposal_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "recovered_value": {
+            "nullable": true,
+            "type": "number",
+            "format": "double"
+          },
+          "recorded": {
+            "type": "string",
+            "format": "date",
+            "example": "2017-04-13",
+            "nullable": true,
+            "description": "YYYY-MM-DD"
+          }
+        }
+      },
+      "count": {
+        "description": "The number of entities in the collection. Available when using the [$count](http://docs.oasis-open.org/odata/odata/v4.01/odata-v4.01-part1-protocol.html#sec_SystemQueryOptioncount) query option.",
+        "type": "number"
+      },
+      "error": {
+        "type": "object",
+        "required": [
+          "error"
+        ],
+        "properties": {
+          "error": {
+            "type": "object",
+            "required": [
+              "code",
+              "message"
+            ],
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              },
+              "target": {
+                "type": "string"
+              },
+              "details": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "target": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "innererror": {
+                "type": "object",
+                "description": "The structure of this object is service-specific"
+              }
+            }
+          }
+        }
+      }
+    },
+    "parameters": {
+      "top": {
+        "name": "$top",
+        "in": "query",
+        "description": "Show only the first n items, see [Paging - Top](http://docs.oasis-open.org/odata/odata/v4.01/odata-v4.01-part1-protocol.html#sec_SystemQueryOptiontop)",
+        "schema": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "example": 50
+      },
+      "skip": {
+        "name": "$skip",
+        "in": "query",
+        "description": "Skip the first n items, see [Paging - Skip](http://docs.oasis-open.org/odata/odata/v4.01/odata-v4.01-part1-protocol.html#sec_SystemQueryOptionskip)",
+        "schema": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "count": {
+        "name": "$count",
+        "in": "query",
+        "description": "Include count of items, see [Count](http://docs.oasis-open.org/odata/odata/v4.01/odata-v4.01-part1-protocol.html#sec_SystemQueryOptioncount)",
+        "schema": {
+          "type": "boolean"
+        }
+      },
+      "search": {
+        "name": "$search",
+        "in": "query",
+        "description": "Search items by search phrases, see [Searching](https://url.sap/odata-search)",
+        "schema": {
+          "type": "string"
+        }
+      }
+    },
+    "responses": {
+      "error": {
+        "description": "Error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/error"
+            }
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "xsuaa": {
+        "type": "oauth2",
+        "flows": {
+          "clientCredentials": {
+            "tokenUrl": "https://<subdomain>.authentication.us10.hana.ondemand.com/oauth/token",
+            "scopes": {}
+          }
+        }
+      }
+    }
+  },
+  "security": [
+    {
+      "xsuaa": []
+    }
+  ]
+}

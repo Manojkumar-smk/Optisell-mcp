@@ -1,0 +1,8 @@
+node_modules/
+mta_archives/
+*.mtar
+gen/
+coverage/
+.env
+default-env.json
+*.db
