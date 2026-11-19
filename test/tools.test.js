@@ -288,6 +288,36 @@ describe('OptiSell tools — §7 acceptance', () => {
     }
   })
 
+  test('@assert.unique sbpa_instance_id: duplicates rejected by the DB, several NULLs allowed', async () => {
+    const { PriceApprovalRequests } = db()
+    const row = id => ({ proposal_id: id, store_id: 'S101', sku: 'MLK-1L', batch: 'B2301', status: 'failed', sbpa_instance_id: null })
+    try {
+      // several requests without an instance id (e.g. failed SBPA starts) must be possible
+      await cds.db.tx(tx => tx.run(INSERT.into(PriceApprovalRequests).entries([row('U-0001'), row('U-0002')])))
+      // a duplicate instance id must be refused by the database itself
+      await expect(cds.db.tx(tx => tx.run(INSERT.into(PriceApprovalRequests)
+        .entries({ ...row('U-0003'), sbpa_instance_id: p3.sbpa_instance_id })))).rejects.toThrow()
+      expect(await SELECT.one.from(PriceApprovalRequests).where({ proposal_id: 'U-0003' })).toBeFalsy()
+    } finally {
+      await cds.db.tx(tx => tx.run(DELETE.from(PriceApprovalRequests).where({ proposal_id: { like: 'U-%' } })))
+    }
+  })
+
+  test('startup seeding: skipped when data exists (pending approval survives a restart), loads into an empty DB', async () => {
+    const { seedIfEmpty } = require('../srv/lib/seed')
+    const pending = (await SELECT.from(db().MaterialPrices).where({ approval_status: 'PENDING' }))
+    expect(pending.length).toBeGreaterThan(0)
+    expect(await seedIfEmpty()).toBe(false)
+    for (const row of pending) expect(await priceRow(row.batch)).toEqual(row)
+    expect((await request('P-0003')).status).toBe('applied')
+
+    // empty database → seed loaded (in its own tx, as on a fresh HDI container)
+    await cds.db.tx(async tx => { for (const e of Object.values(db())) await tx.run(DELETE.from(e)) })
+    expect(await seedIfEmpty()).toBe(true)
+    expect(await counter()).toBe(3)
+    expect((await SELECT.from(db().MaterialPrices)).length).toBe(11)
+  })
+
   test('reset_demo_data restores the seed', async () => {
     expect((await call('/admin/reset_demo_data', {})).status).toBe(200)
     expect(await counter()).toBe(3)

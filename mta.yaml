@@ -9,20 +9,33 @@ description: OptiSell tools service (CAP) with SBPA price approval
 #   optisell-agent-uaa   – client for Joule Studio agent / MCP server → only Tools
 #   optisell-sbpa-uaa    – client for the SBPA destination           → only SbpaCallback
 # Create a service key on optisell-agent-uaa and optisell-sbpa-uaa and use those credentials.
+#
+# Database: SAP HANA Cloud HDI container (optisell-db). The seed CSVs live in seed/ (copied to
+# gen/srv/seed), NOT in gen/db — so the HDI deployer only creates/migrates tables and never
+# loads or overwrites data. The app seeds an EMPTY container once on startup.
+
+build-parameters:
+  before-all:
+    - builder: custom
+      commands:
+        - npm ci
+        - npx cds build --production
+        - node scripts/copy-seed.js
 
 modules:
   - name: optisell-tools-srv
     type: nodejs
-    path: .
+    path: gen/srv
     build-parameters:
       builder: custom        # no local npm install/prune: the CF nodejs buildpack installs deps
       commands: []
-      ignore: [node_modules/, mta_archives/, test/, .git/, "*.mtar", coverage/, install.cmd]
+      ignore: [node_modules/]
+    deployed-after: [optisell-tools-db-deployer]   # tables must exist before the app starts (seedIfEmpty)
     parameters:
       buildpack: nodejs_buildpack
       memory: 256M
       disk-quota: 512M
-      instances: 1           # in-memory SQLite — state is per instance and reset on restart
+      instances: 1
       command: npm start
     properties:
       NODE_ENV: production
@@ -36,8 +49,27 @@ modules:
           srv-url: ${default-url}
     requires:
       - name: optisell-uaa
+      - name: optisell-db
+
+  - name: optisell-tools-db-deployer
+    type: hdb
+    path: gen/db
+    parameters:
+      buildpack: nodejs_buildpack
+      memory: 256M
+      disk-quota: 512M
+    requires:
+      - name: optisell-db
 
 resources:
+  - name: optisell-db
+    type: com.sap.xs.hdi-container
+    parameters:
+      service: hana
+      service-plan: hdi-shared
+    properties:
+      hdi-service-name: ${service-name}
+
   - name: optisell-uaa
     type: org.cloudfoundry.managed-service
     parameters:

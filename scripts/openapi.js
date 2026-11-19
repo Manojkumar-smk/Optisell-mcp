@@ -1,20 +1,44 @@
 #!/usr/bin/env node
 // Equivalent of `cds compile srv/tools-service.cds --to openapi`, plus:
-//  - servers → deployed URL (OPENAPI_SERVER_URL or first CLI arg)
-//  - OAuth2 client-credentials security scheme (XSUAA)
+//  - servers → deployed URL (first CLI arg or OPENAPI_SERVER_URL) — required, no placeholder
+//  - OAuth2 client-credentials tokenUrl → OPENAPI_TOKEN_URL, or read from the
+//    optisell-agent-uaa service key via the cf CLI (AGENT_KEY, default agent-key)
+//  - refuses to write placeholders, and checks that app URL and token URL are in the same region
 //  - read-only / write hints per tool
 // Only ToolsService — /sbpa and /admin are intentionally NOT included.
 const cds = require('@sap/cds')
 const { compile: toOpenapi } = require('@cap-js/openapi')
 const fs = require('fs'), path = require('path')
+const { execFileSync } = require('child_process')
+
+function tokenUrlFromServiceKey () {
+  const key = process.env.AGENT_KEY || 'agent-key'
+  let out
+  try { out = execFileSync('cf', ['service-key', 'optisell-agent-uaa', key], { encoding: 'utf8' }) }
+  catch (e) { throw new Error(`could not read service key optisell-agent-uaa/${key} (cf login? key created?) — or set OPENAPI_TOKEN_URL`) }
+  const json = JSON.parse(out.slice(out.indexOf('{')))
+  const url = (json.credentials || json).url
+  if (!url) throw new Error('service key has no "url"')
+  return url.replace(/\/$/, '') + '/oauth/token'
+}
+
+// "cfapps.us10-001.hana.ondemand.com" → "us10";  "x.authentication.us10.hana.ondemand.com" → "us10"
+const region = u => (new URL(u).hostname.match(/(?:cfapps|authentication)\.([a-z]{2}\d{2})/) || [])[1]
 
 const READ_ONLY = ['get_store_stock', 'get_sales_history', 'get_demand_signals', 'get_markdown_policy',
   'get_competitor_prices', 'get_proposals', 'get_approval_status', 'get_markdown_kpis']
 const WRITES = ['create_proposal', 'record_outcome']
 
 ;(async () => {
-  const server = process.argv[2] || process.env.OPENAPI_SERVER_URL || 'https://<your-app>.cfapps.us10-001.hana.ondemand.com'
-  const tokenUrl = process.env.OPENAPI_TOKEN_URL || 'https://<subdomain>.authentication.us10.hana.ondemand.com/oauth/token'
+  const server = process.argv[2] || process.env.OPENAPI_SERVER_URL
+  if (!server) throw new Error('usage: npm run openapi -- https://<deployed app URL>')
+  const tokenUrl = process.env.OPENAPI_TOKEN_URL || tokenUrlFromServiceKey()
+  for (const u of [server, tokenUrl]) {
+    if (/[<>]/.test(u)) throw new Error(`placeholder in URL: ${u}`)
+    if (!/^https:\/\//.test(u)) throw new Error(`not an https URL: ${u}`)
+  }
+  if (region(server) !== region(tokenUrl))
+    throw new Error(`region mismatch: app ${region(server)} vs token ${region(tokenUrl)}`)
   const csn = await cds.load(path.join(__dirname, '..', 'srv', 'tools-service.cds'), { docs: true })
   const doc = toOpenapi(csn, { service: 'ToolsService', 'openapi:url': '/tools', 'openapi:diagram': false })
 
@@ -60,6 +84,10 @@ const WRITES = ['create_proposal', 'record_outcome']
   if (JSON.stringify(names) !== JSON.stringify(expected)) throw new Error('unexpected tool set: ' + names.join(', '))
 
   const out = path.join(__dirname, '..', 'openapi', 'optisell-tools.openapi.json')
-  fs.writeFileSync(out, JSON.stringify(doc, null, 2) + '\n')
-  console.log(`wrote ${out} — ${names.length} tools, server ${doc.servers[0].url}`)
-})().catch(e => { console.error(e); process.exit(1) })
+  const text = JSON.stringify(doc, null, 2)
+  if (/<your-app>|<subdomain>/.test(text)) throw new Error('placeholder left in OpenAPI document')
+  fs.writeFileSync(out, text + '\n')
+  console.log(`wrote ${out} — ${names.length} tools`)
+  console.log(`  server:   ${doc.servers[0].url}`)
+  console.log(`  tokenUrl: ${tokenUrl}  (region ${region(tokenUrl)})`)
+})().catch(e => { console.error('openapi:', e.message); process.exit(1) })

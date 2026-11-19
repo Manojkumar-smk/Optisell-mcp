@@ -124,11 +124,13 @@ module.exports = class ToolsService extends cds.ApplicationService {
         // Fast path for a clear error message; the atomic UPDATE below is the actual guard.
         if (lock.isLocked(mp)) throw conflict(key.batch, mp)
 
-        const c = await tx.run(SELECT.one.from(Counters).where({ name: 'proposal' }))
-        const seq = c?.value ?? 3
+        // Atomic increment FIRST: on HANA this takes the row lock on the counter, so concurrent
+        // create_proposal calls serialize here instead of reading the same value (→ duplicate key).
+        // Rolled back together with the request row if the lock below fails (counter unchanged).
+        const bumped = await tx.run(UPDATE(Counters).set({ value: { '+=': 1 } }).where({ name: 'proposal' }))
+        if (!bumped) await tx.run(INSERT.into(Counters).entries({ name: 'proposal', value: 4 }))
+        const seq = (await tx.run(SELECT.one.from(Counters).columns('value').where({ name: 'proposal' }))).value - 1
         const proposal_id = `P-${String(seq).padStart(4, '0')}`
-        if (c) await tx.run(UPDATE(Counters).set({ value: seq + 1 }).where({ name: 'proposal' }))
-        else await tx.run(INSERT.into(Counters).entries({ name: 'proposal', value: seq + 1 }))
 
         const proposal = {
           proposal_id, ...key,
@@ -139,8 +141,8 @@ module.exports = class ToolsService extends cds.ApplicationService {
         }
         await tx.run(INSERT.into(PriceApprovalRequests).entries(proposal))
 
-        const n = await lock.acquire(tx, key, { proposal_id, new_price, now: ts })
-        if (n === 0) throw conflict(key.batch, await tx.run(SELECT.one.from(MaterialPrices).where(key)))
+        const acquired = await lock.acquire(tx, key, { proposal_id, new_price, now: ts })
+        if (acquired === 0) throw conflict(key.batch, await tx.run(SELECT.one.from(MaterialPrices).where(key)))
         return { proposal, mp }
       })
 

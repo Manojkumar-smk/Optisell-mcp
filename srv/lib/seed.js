@@ -1,9 +1,13 @@
-// (Re)loads the §5 seed from db/data/*.csv and resolves date offsets relative to today.
+// (Re)loads the §5 seed from seed/*.csv and resolves date offsets relative to today.
+// The CSVs deliberately live in seed/ (not db/data/) so the HDI deployer never loads or
+// overwrites them: data must survive deploys and restarts (approvals are asynchronous).
+// Locally this resolves to <project>/seed, in the deployed app to gen/srv/seed (copied by scripts/copy-seed.js).
 const cds = require('@sap/cds')
 const fs = require('fs'), path = require('path')
 const { offsetToDate, offsetToTimestamp } = require('./dates')
+const LOG = cds.log('seed')
 
-const DATA_DIR = path.join(__dirname, '..', '..', 'db', 'data')
+const DATA_DIR = path.join(__dirname, '..', '..', 'seed')
 
 function parseCSV (text) {
   const rows = []; let row = [], cell = '', quoted = false
@@ -51,6 +55,9 @@ async function applyDateOffsets (tx) {
 /** Wipe all optisell entities and reload them from the CSV seed. */
 async function resetDemoData () {
   const entities = cds.entities('optisell')
+  // Never wipe the tables if the seed is missing (e.g. a build that forgot to copy seed/)
+  if (!fs.existsSync(path.join(DATA_DIR, 'optisell-MaterialPrices.csv')))
+    throw new Error(`Seed data not found in ${DATA_DIR} — refusing to reset`)
   await cds.db.tx(async tx => {
     for (const [name, entity] of Object.entries(entities)) {
       await tx.run(DELETE.from(entity))
@@ -64,4 +71,18 @@ async function resetDemoData () {
   })
 }
 
-module.exports = { resetDemoData, applyDateOffsets }
+/**
+ * Startup hook: load the seed ONLY when the database is empty (fresh in-memory DB or a new HDI container).
+ * Existing data — including pending approvals — survives restarts and redeploys.
+ * @returns {Promise<boolean>} true if the seed was loaded
+ */
+async function seedIfEmpty () {
+  const { MaterialPrices } = cds.entities('optisell')
+  const any = await cds.db.tx(tx => tx.run(SELECT.one.from(MaterialPrices).columns('batch')))
+  if (any) { LOG.info('database has data — seed not loaded'); return false }
+  LOG.info('database is empty — loading seed from', DATA_DIR)
+  await resetDemoData()
+  return true
+}
+
+module.exports = { resetDemoData, seedIfEmpty, applyDateOffsets, DATA_DIR }

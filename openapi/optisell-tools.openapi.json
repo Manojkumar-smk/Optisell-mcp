@@ -10,7 +10,7 @@
   "x-sap-shortText": "OptiSell agent tools. Every tool is `POST /tools/<tool_name>` with a JSON body of named parameters.\nRead-only tools: all get_*. Write tools: create_proposal, record_outcome.\nPrices only change after an approval in SAP Build Process Automation.",
   "servers": [
     {
-      "url": "https://<your-app>.cfapps.us10-001.hana.ondemand.com/tools"
+      "url": "https://3e6e85eetrial-3e6e85eetrial-dev-optisell-tools-srv.cfapps.us10-001.hana.ondemand.com/tools"
     }
   ],
   "tags": [],
@@ -1173,7 +1173,7 @@
         "type": "oauth2",
         "flows": {
           "clientCredentials": {
-            "tokenUrl": "https://<subdomain>.authentication.us10.hana.ondemand.com/oauth/token",
+            "tokenUrl": "https://3e6e85eetrial.authentication.us10.hana.ondemand.com/oauth/token",
             "scopes": {}
           }
         }

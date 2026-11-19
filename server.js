@@ -1,7 +1,9 @@
 const cds = require('@sap/cds')
-const { resetDemoData } = require('./srv/lib/seed')
+const { seedIfEmpty } = require('./srv/lib/seed')
 
-// Load the seed (with date offsets resolved to today) once the services are up.
-cds.once('served', () => resetDemoData())
+// Load the seed only into an EMPTY database. Approvals are asynchronous (SBPA calls back later),
+// so a restart must never wipe MaterialPrices / PriceApprovalRequests.
+// Use POST /admin/reset_demo_data to reset the demo explicitly.
+cds.once('served', () => seedIfEmpty())
 
 module.exports = cds.server

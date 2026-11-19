@@ -6,3 +6,6 @@ coverage/
 .env
 default-env.json
 *.db
+
+# added by cds
+.cdsrc-private.json

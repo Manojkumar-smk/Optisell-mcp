@@ -1,9 +1,9 @@
 #!/usr/bin/env node
-// Generates db/data/*.csv from the §5 seed table. Offsets only — never absolute dates.
+// Generates seed/*.csv from the §5 seed table (NOT db/data: the HDI deployer must not load them). Offsets only — never absolute dates.
 // Date/Timestamp columns are left empty here and resolved relative to "today"
 // by srv/lib/seed.js (applyDateOffsets) at startup and on reset_demo_data.
 const fs = require('fs'), path = require('path')
-const dir = path.join(__dirname, '..', 'db', 'data')
+const dir = path.join(__dirname, '..', 'seed')
 const STORE = 'S101'
 
 const stock = [
